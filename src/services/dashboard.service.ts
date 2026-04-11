@@ -1,46 +1,39 @@
 import apiClient from '@/lib/api-client';
-import { ApiResponse, PaginatedResponse, User, Company, Event, InterviewQueue, Interview, Track, Student } from '@/types';
+import { ApiResponse, PaginatedResponse, User, Company, Event, InterviewQueue, Interview } from '@/types';
 
 export const dashboardApi = {
-  // Stats endpoints
-  getStudentsCount: () => 
+  // Get all users (no role filter - backend doesn't support it)
+  getUsers: (page = 1, limit = 20) => 
     apiClient.get<ApiResponse<PaginatedResponse<User>>>('/users', { 
-      params: { role: 'student', page: 1, limit: 1 } 
+      params: { page, limit } 
     }),
   
-  getPendingCompanies: () => 
+  // Get all companies (no status filter - backend doesn't support it)
+  getCompanies: (page = 1, limit = 20) => 
     apiClient.get<ApiResponse<PaginatedResponse<Company>>>('/companies', { 
-      params: { status: 'pending', page: 1, limit: 100 } 
+      params: { page, limit } 
     }),
   
-  getPublishedEvents: () => 
+  // Get all events
+  getEvents: (page = 1, limit = 20) => 
     apiClient.get<ApiResponse<PaginatedResponse<Event>>>('/events', { 
-      params: { page: 1, limit: 100 } 
+      params: { page, limit } 
     }),
   
-  getInterviews: (params?: { page?: number; limit?: number }) => 
+  // Get all interviews
+  getInterviews: (page = 1, limit = 20) => 
     apiClient.get<ApiResponse<PaginatedResponse<Interview>>>('/interviews', { 
-      params: { page: 1, limit: 100, ...params } 
+      params: { page, limit } 
     }),
 
-  // Role-specific endpoints
-  getMyJobProfiles: (companyId: string) => 
-    apiClient.get<ApiResponse<PaginatedResponse<any>>>('/job-profiles', { 
-      params: { companyId, page: 1, limit: 100 } 
-    }),
+  // Get single company by ID
+  getCompanyById: (id: string) => 
+    apiClient.get<ApiResponse<Company>>(`/companies/${id}`),
 
-  getMyQueues: (studentId: string) => 
-    apiClient.get<ApiResponse<PaginatedResponse<InterviewQueue>>>('/queues', { 
-      params: { studentId, page: 1, limit: 100 } 
-    }),
+  // Company actions
+  approveCompany: (id: string) => 
+    apiClient.patch<ApiResponse<Company>>(`/companies/${id}/approve`),
 
-  getTracks: () => 
-    apiClient.get<ApiResponse<PaginatedResponse<Track>>>('/tracks', { 
-      params: { page: 1, limit: 100 } 
-    }),
-
-  getStudents: (trackId?: string) => 
-    apiClient.get<ApiResponse<PaginatedResponse<User>>>('/users', { 
-      params: { role: 'student', page: 1, limit: 100, trackId } 
-    }),
+  rejectCompany: (id: string) => 
+    apiClient.patch<ApiResponse<Company>>(`/companies/${id}/reject`),
 };
