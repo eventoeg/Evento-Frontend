@@ -42,9 +42,7 @@ export const registerSchema = z
     confirmPassword: z
       .string()
       .min(1, 'Please confirm your password'),
-    role: z
-      .nativeEnum(UserRole)
-      .default(UserRole.STUDENT),
+    role: z.nativeEnum(UserRole),
     trackId: z
       .string()
       .uuid('Please select a valid track')

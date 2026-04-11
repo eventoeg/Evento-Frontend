@@ -1,12 +1,15 @@
 import { create } from 'zustand';
 import { User, UserRole } from '@/types';
 import { authService } from '@/services/auth.service';
+import { setAccessToken } from '@/lib/api-client';
 
 interface AuthState {
   // State
   user: User | null;
+  accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean; // Track if we've checked sessionStorage
   error: string | null;
 
   // Actions
@@ -18,6 +21,7 @@ interface AuthState {
   refreshSession: () => Promise<void>;
   updateProfile: (data: UpdateProfileData) => Promise<void>;
   clearError: () => void;
+  initialize: () => Promise<void>; // Rehydrate from sessionStorage
 }
 
 interface RegisterData {
@@ -40,9 +44,65 @@ interface UpdateProfileData {
 export const useAuthStore = create<AuthState>((set, get) => ({
   // Initial state
   user: null,
+  accessToken: null,
   isAuthenticated: false,
   isLoading: false,
+  isInitialized: false,
   error: null,
+
+  // Rehydrate from sessionStorage on mount
+  initialize: async () => {
+    // Don't reinitialize if already done
+    if (get().isInitialized) return;
+
+    const refreshToken = typeof window !== 'undefined' ? sessionStorage.getItem('refresh_token') : null;
+
+    if (!refreshToken) {
+      set({ isInitialized: true, user: null, accessToken: null, isAuthenticated: false });
+      return;
+    }
+
+    set({ isLoading: true });
+    try {
+      const response = await authService.refresh({ refreshToken });
+
+      if (response.success && response.data) {
+        const { accessToken, refreshToken: newRefreshToken, user } = response.data;
+        get().setTokens(accessToken, newRefreshToken);
+        set({
+          user,
+          isAuthenticated: true,
+          isLoading: false,
+          isInitialized: true,
+          error: null,
+        });
+      } else {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('refresh_token');
+        }
+        set({
+          user: null,
+          accessToken: null,
+          isAuthenticated: false,
+          isLoading: false,
+          isInitialized: true,
+          error: null,
+        });
+      }
+    } catch (error) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('refresh_token');
+      }
+      set({
+        user: null,
+        accessToken: null,
+        isAuthenticated: false,
+        isLoading: false,
+        isInitialized: true,
+        error: null,
+      });
+    }
+  },
 
   // Set user
   setUser: (user) => {
@@ -55,26 +115,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('refresh_token', refreshToken);
     }
-    // Access token is kept in memory only (not persisted)
+    set({ accessToken });
+    setAccessToken(accessToken);
   },
 
   // Login
   login: async (email: string, password: string) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, isInitialized: false });
     try {
       const response = await authService.login({ email, password });
-      
+
       if (response.success && response.data) {
         const { accessToken, refreshToken, user } = response.data;
-        
+
         // Store tokens
         get().setTokens(accessToken, refreshToken);
-        
-        // Set user
+
+        // Set user and mark as initialized
         set({
           user,
           isAuthenticated: true,
           isLoading: false,
+          isInitialized: true,
           error: null,
         });
       } else {
@@ -85,6 +147,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         error: Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage,
         isLoading: false,
+        isInitialized: true,
         isAuthenticated: false,
         user: null,
       });
@@ -94,21 +157,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   // Register
   register: async (data: RegisterData) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, isInitialized: false });
     try {
       const response = await authService.register(data);
-      
+
       if (response.success && response.data) {
         const { accessToken, refreshToken, user } = response.data;
-        
+
         // Store tokens
         get().setTokens(accessToken, refreshToken);
-        
-        // Set user
+
+        // Set user and mark as initialized
         set({
           user,
           isAuthenticated: true,
           isLoading: false,
+          isInitialized: true,
           error: null,
         });
       } else {
@@ -119,6 +183,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         error: Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage,
         isLoading: false,
+        isInitialized: true,
         isAuthenticated: false,
         user: null,
       });
@@ -129,10 +194,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // Logout
   logout: () => {
     authService.logout();
+    setAccessToken(null);
     set({
       user: null,
+      accessToken: null,
       isAuthenticated: false,
       isLoading: false,
+      isInitialized: true,
       error: null,
     });
   },
@@ -140,16 +208,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // Refresh session
   refreshSession: async () => {
     const refreshToken = typeof window !== 'undefined' ? sessionStorage.getItem('refresh_token') : null;
-    
+
     if (!refreshToken) {
-      set({ user: null, isAuthenticated: false });
+      set({ user: null, accessToken: null, isAuthenticated: false, isInitialized: true });
       return;
     }
 
     set({ isLoading: true });
     try {
       const response = await authService.refresh({ refreshToken });
-      
+
       if (response.success && response.data) {
         const { accessToken, refreshToken: newRefreshToken, user } = response.data;
         get().setTokens(accessToken, newRefreshToken);
@@ -157,15 +225,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user,
           isAuthenticated: true,
           isLoading: false,
+          isInitialized: true,
           error: null,
         });
       }
     } catch (error) {
       // Refresh failed - clear auth state
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('refresh_token');
+      }
       set({
         user: null,
+        accessToken: null,
         isAuthenticated: false,
         isLoading: false,
+        isInitialized: true,
         error: null,
       });
     }
@@ -179,7 +253,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await authService.updateProfile(user.id, data);
-      
+
       if (response.success && response.data) {
         set({
           user: response.data,

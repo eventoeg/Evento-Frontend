@@ -3,6 +3,12 @@ import { ApiResponse } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
+let currentAccessToken: string | null = null;
+
+export function setAccessToken(token: string | null) {
+  currentAccessToken = token;
+}
+
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -15,13 +21,13 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor - attach auth token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Get token from sessionStorage (refresh token store)
-    const token = typeof window !== 'undefined' ? sessionStorage.getItem('refresh_token') : null;
-    
+    // Use the access token kept in memory by the auth store
+    const token = currentAccessToken;
+
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     return config;
   },
   (error: AxiosError) => {
