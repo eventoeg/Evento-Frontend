@@ -128,6 +128,24 @@ The complete Authentication module has been implemented with the following compo
 
 ---
 
+## 🚧 Current Gaps / Not Implemented Yet
+
+The frontend still has several areas that are only partially built or still rely on placeholder UI:
+
+- The dashboard still uses placeholder sections for `Reports`, `System Status`, and `Settings`.
+- Dedicated CRUD pages for `users`, `companies`, and `tracks` are not yet present under the app router.
+- The remaining module screens from the docs (`events`, `job profiles`, `branding speakers`, `interview queues`, `interviews`, `student cvs`, `attendance`, `feedback`) are still service-only or not wired into visible pages.
+- Search, edit, delete, restore, and detail flows for most entities are not yet implemented in the UI.
+
+---
+
+## 🔄 Started Implementation
+
+- The registration form now loads real `tracks` and approved `companies` from the API instead of hard-coded mock lists.
+- The dashboard `Employees` section now shows a live API-backed user directory with role filtering and pagination.
+
+---
+
 ## 📁 Project Structure
 
 ```
