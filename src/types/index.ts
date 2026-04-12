@@ -61,9 +61,24 @@ export enum QueueStatus {
 
 export enum InterviewResult {
   PENDING = 'pending',
+  SHORTLISTED = 'shortlisted',
+  REJECTED = 'rejected',
   PASSED = 'passed',
   FAILED = 'failed',
   HIRED = 'hired',
+}
+
+export enum InterviewStatus {
+  SCHEDULED = 'scheduled',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+}
+
+export enum FeedbackTargetType {
+  EVENT = 'event',
+  COMPANY = 'company',
+  INTERVIEW = 'interview',
 }
 
 // ========================================
@@ -204,9 +219,36 @@ export interface Interview {
   interviewerName: string;
   startedAt: string | null;
   endedAt: string | null;
+  status: InterviewStatus;
   result: InterviewResult;
   notes: string | null;
   queue: InterviewQueue;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Attendance {
+  id: string;
+  event: Event;
+  student: Student;
+  checkInTime: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Feedback {
+  id: string;
+  targetType: FeedbackTargetType;
+  eventId?: string;
+  companyId?: string;
+  interviewId?: string;
+  rating: number;
+  comments?: string;
+  isMandatory?: boolean;
+  student?: Student;
+  event?: Event;
+  company?: Company;
+  interview?: Interview;
   createdAt: string;
   updatedAt: string;
 }
@@ -221,6 +263,17 @@ export interface LoginDto {
 }
 
 export interface RegisterDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  role?: UserRole;
+  trackId?: string;
+  companyId?: string;
+  graduationYear?: number;
+}
+
+export interface CreateUserDto {
   firstName: string;
   lastName: string;
   email: string;
@@ -359,8 +412,30 @@ export interface CreateInterviewDto {
 }
 
 export interface UpdateInterviewDto {
+  status?: InterviewStatus;
   result?: InterviewResult;
   notes?: string;
+}
+
+export interface CreateAttendanceDto {
+  eventId: string;
+  studentId: string;
+}
+
+export interface CreateFeedbackDto {
+  targetType: FeedbackTargetType;
+  eventId?: string;
+  companyId?: string;
+  interviewId?: string;
+  rating: number;
+  comments?: string;
+  isMandatory?: boolean;
+}
+
+export interface UpdateFeedbackDto {
+  rating?: number;
+  comments?: string;
+  isMandatory?: boolean;
 }
 
 // ========================================
