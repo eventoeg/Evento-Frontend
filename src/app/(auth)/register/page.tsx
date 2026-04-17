@@ -1,6 +1,8 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -16,16 +18,20 @@ import {
   Lock,
   Mail,
   User,
+  AlertCircle,
+  Info,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { companiesService } from '@/services/companies.service';
 import { tracksService } from '@/services/tracks.service';
+import { usersService } from '@/services/users.service';
 import SearchableSelect from '@/components/ui/SearchableSelect';
 import { CompanyStatus, type Company, type Track, UserRole } from '@/types';
 import { registerSchema, type RegisterFormData } from '@/validations/auth.schema';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { register, isLoading, error, clearError } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -33,6 +39,12 @@ export default function RegisterPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [referenceLoading, setReferenceLoading] = useState(true);
   const [referenceError, setReferenceError] = useState<string | null>(null);
+  
+  // Private link and previous student detection state
+  const isPrivateLink = searchParams.get('type') === 'iti-student';
+  const [previousStudentEmail, setPreviousStudentEmail] = useState<string | null>(null);
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailCheckDone, setEmailCheckDone] = useState(false);
 
   const {
     register: registerField,
@@ -58,6 +70,50 @@ export default function RegisterPage() {
   const watchRole = watch('role');
   const watchTrackId = watch('trackId');
   const watchCompanyId = watch('companyId');
+  const watchEmail = watch('email');
+
+  // Check if email belongs to a previous student when email changes
+  useEffect(() => {
+    const checkPreviousStudent = async () => {
+      if (!watchEmail || watchEmail.length < 5) {
+        setPreviousStudentEmail(null);
+        setEmailCheckDone(false);
+        return;
+      }
+
+      setEmailChecking(true);
+      try {
+        const response = await usersService.findByEmail(watchEmail);
+        if (response.success && response.data) {
+          const user = response.data;
+          // Check if this user was previously a student
+          if (user.student && user.role !== UserRole.STUDENT) {
+            setPreviousStudentEmail(watchEmail);
+          } else {
+            setPreviousStudentEmail(null);
+          }
+        } else {
+          setPreviousStudentEmail(null);
+        }
+      } catch (err) {
+        // Email not found or error - not a previous student
+        setPreviousStudentEmail(null);
+      } finally {
+        setEmailCheckDone(true);
+        setEmailChecking(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(checkPreviousStudent, 500);
+    return () => clearTimeout(debounceTimer);
+  }, [watchEmail]);
+
+  // Auto-set role if private link
+  useEffect(() => {
+    if (isPrivateLink) {
+      setValue('role', UserRole.STUDENT);
+    }
+  }, [isPrivateLink, setValue]);
 
   useEffect(() => {
     const loadReferenceData = async () => {
@@ -206,6 +262,33 @@ export default function RegisterPage() {
             <p className="text-slate-500 mt-2">Register as a Student or Company Representative</p>
           </div>
 
+          {/* Private Link Banner */}
+          {isPrivateLink && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
+              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-blue-800 font-medium mb-1">ITI Student Registration</p>
+                <p className="text-xs text-blue-700">
+                  You're registering through a private ITI student link. Your account will be created with Student role automatically.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Previous Student Warning */}
+          {previousStudentEmail && emailCheckDone && (
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-amber-800 font-medium mb-1">Previous Student Account Detected</p>
+                <p className="text-xs text-amber-700">
+                  This email belongs to a previous student. Registration will create a new account. 
+                  If you want to update your existing account, please contact an administrator.
+                </p>
+              </div>
+            </div>
+          )}
+
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
               <p className="text-sm text-red-700">{error}</p>
@@ -223,29 +306,36 @@ export default function RegisterPage() {
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => setValue('role', UserRole.STUDENT)}
+                onClick={() => !isPrivateLink && setValue('role', UserRole.STUDENT)}
+                disabled={isPrivateLink}
                 className={`flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl border-2 font-medium text-sm transition-all ${
                   watchRole === UserRole.STUDENT
                     ? 'border-[#006DBE] bg-[#006DBE]/5 text-[#006DBE]'
                     : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
-                }`}
+                } ${isPrivateLink ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
               >
                 <GraduationCap className="w-5 h-5" />
                 Student
               </button>
               <button
                 type="button"
-                onClick={() => setValue('role', UserRole.COMPANY_REP)}
+                onClick={() => !isPrivateLink && setValue('role', UserRole.COMPANY_REP)}
+                disabled={isPrivateLink}
                 className={`flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl border-2 font-medium text-sm transition-all ${
                   watchRole === UserRole.COMPANY_REP
                     ? 'border-[#006DBE] bg-[#006DBE]/5 text-[#006DBE]'
                     : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
-                }`}
+                } ${isPrivateLink ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
               >
                 <Building className="w-5 h-5" />
                 Company Rep
               </button>
             </div>
+            {isPrivateLink && (
+              <p className="mt-2 text-xs text-slate-500">
+                Role is locked to Student for private ITI student links.
+              </p>
+            )}
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -307,12 +397,17 @@ export default function RegisterPage() {
                   {...registerField('email')}
                   type="email"
                   id="email"
-                  className={`w-full pl-12 pr-4 py-3.5 bg-white border rounded-xl text-[#1F2937] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#C1272D]/20 focus:border-[#C1272D] transition-all ${
+                  className={`w-full pl-12 pr-12 py-3.5 bg-white border rounded-xl text-[#1F2937] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#C1272D]/20 focus:border-[#C1272D] transition-all ${
                     errors.email ? 'border-red-400 bg-red-50' : 'border-slate-200'
                   }`}
                   placeholder="you@company.com"
                   disabled={isLoading}
                 />
+                {emailChecking && (
+                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                    <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                  </div>
+                )}
               </div>
               {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>}
             </div>
@@ -489,5 +584,17 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#F7FAFC]">
+        <Loader2 className="w-8 h-8 animate-spin text-[#C1272D]" />
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
+import RoleGuard, { getFilteredNavItems } from '@/components/RoleGuard';
 import { useAuthStore } from '@/store/auth.store';
 import { getInitials } from '@/lib/utils';
 import { Loader2, Menu, X, LogOut, Search, Bell, Settings } from 'lucide-react';
@@ -46,7 +47,8 @@ export default function DashboardLayout({
     );
   }
 
-  const navItems = [
+  // All possible navigation items with their role requirements
+  const allNavItems = [
     { label: 'System Overview', href: '/', icon: 'grid_view' },
     { label: 'Profile', href: '/profile', icon: 'account_circle' },
     { label: 'Companies', href: '/companies', icon: 'business' },
@@ -59,6 +61,9 @@ export default function DashboardLayout({
     { label: 'Feedback', href: '/feedback', icon: 'rate_review' },
     { label: 'User Management', href: '/users', icon: 'group' },
   ];
+
+  // Filter navigation items based on user's role permissions
+  const navItems = getFilteredNavItems(user.role, allNavItems);
 
   return (
     <AuthGuard>
@@ -111,9 +116,15 @@ export default function DashboardLayout({
               </Link>
               
               <nav className="hidden lg:flex items-center gap-8">
-                <Link href="/" className={`text-xs font-bold uppercase tracking-widest transition-colors ${pathname === '/' ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-on-surface'}`}>Dashboard</Link>
-                <Link href="/events" className={`text-xs font-bold uppercase tracking-widest transition-colors ${pathname === '/events' ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-on-surface'}`}>Events</Link>
-                <Link href="/companies" className={`text-xs font-bold uppercase tracking-widest transition-colors ${pathname === '/companies' ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-on-surface'}`}>Directory</Link>
+                {navItems.some(item => item.href === '/') && (
+                  <Link href="/" className={`text-xs font-bold uppercase tracking-widest transition-colors ${pathname === '/' ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-on-surface'}`}>Dashboard</Link>
+                )}
+                {navItems.some(item => item.href === '/events') && (
+                  <Link href="/events" className={`text-xs font-bold uppercase tracking-widest transition-colors ${pathname === '/events' ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-on-surface'}`}>Events</Link>
+                )}
+                {navItems.some(item => item.href === '/companies') && (
+                  <Link href="/companies" className={`text-xs font-bold uppercase tracking-widest transition-colors ${pathname === '/companies' ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-on-surface'}`}>Directory</Link>
+                )}
               </nav>
             </div>
 
