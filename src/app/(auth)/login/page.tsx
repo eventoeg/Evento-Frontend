@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,10 +9,21 @@ import { Mail, Lock, Eye, EyeOff, Loader2, Globe } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { loginSchema, type LoginFormData } from '@/validations/auth.schema';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const searchParams = useSearchParams();
+  const { login, isLoading, error, isAuthenticated, clearError } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      window.location.href = callbackUrl;
+    }
+  }, [isAuthenticated, callbackUrl]);
 
   const {
     register,
@@ -28,12 +39,15 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     clearError();
+    setIsSubmitting(true);
     try {
       await login(data.email, data.password);
-      router.push('/');
-      router.refresh();
-    } catch (error) {
+      // isAuthenticated will trigger useEffect above
+    } catch (error: any) {
+      // Error is already set in the store by login()
       console.error('Login failed:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -140,7 +154,7 @@ export default function LoginPage() {
                     errors.email ? 'border-red-400 bg-red-50' : 'border-slate-200'
                   }`}
                   placeholder="you@company.com"
-                  disabled={isLoading}
+                  disabled={isSubmitting || isLoading}
                 />
               </div>
               {errors.email && (
@@ -173,13 +187,13 @@ export default function LoginPage() {
                     errors.password ? 'border-red-400 bg-red-50' : 'border-slate-200'
                   }`}
                   placeholder="Enter your password"
-                  disabled={isLoading}
+                  disabled={isSubmitting || isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                  disabled={isLoading}
+                  disabled={isSubmitting || isLoading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -196,10 +210,10 @@ export default function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting || isLoading}
               className="w-full bg-[#C1272D] hover:bg-[#C1272D]/90 disabled:bg-[#C1272D]/50 text-white font-semibold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#C1272D]/20"
             >
-              {isLoading ? (
+              {(isSubmitting || isLoading) ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Signing in...
@@ -232,5 +246,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#F7FAFC]">
+        <Loader2 className="w-8 h-8 animate-spin text-[#C1272D]" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

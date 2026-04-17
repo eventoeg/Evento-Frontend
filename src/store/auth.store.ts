@@ -114,6 +114,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Store refresh token in sessionStorage (more secure than localStorage)
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('refresh_token', refreshToken);
+      document.cookie = `auth_token=${accessToken}; path=/; sameSite=Lax`;
     }
     set({ accessToken });
     setAccessToken(accessToken);
@@ -194,6 +195,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // Logout
   logout: () => {
     authService.logout();
+    if (typeof window !== 'undefined') {
+      document.cookie = 'auth_token=; path=/; max-age=0; sameSite=Lax';
+    }
     setAccessToken(null);
     set({
       user: null,
