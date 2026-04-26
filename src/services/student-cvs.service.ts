@@ -23,8 +23,8 @@ export const studentCvsService = {
   /**
    * List student CVs with pagination
    */
-  async findAll(page: number = 1, limit: number = 20): Promise<ApiResponse<PaginatedResponse<StudentCv>>> {
-    const params = { page, limit };
+  async findAll(page: number = 1, limit: number = 20, studentId?: string): Promise<ApiResponse<PaginatedResponse<StudentCv>>> {
+    const params = { page, limit, studentId };
     const response = await apiClient.get<ApiResponse<PaginatedResponse<StudentCv>>>('/student-cvs', { params });
     return response.data;
   },

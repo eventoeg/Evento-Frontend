@@ -14,7 +14,7 @@ interface AuthState {
 
   // Actions
   setUser: (user: User | null) => void;
-  setTokens: (accessToken: string, refreshToken: string) => void;
+  setTokens: (accessToken: string, refreshToken: string, role?: UserRole) => void;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
@@ -68,7 +68,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (response.success && response.data) {
         const { accessToken, refreshToken: newRefreshToken, user } = response.data;
-        get().setTokens(accessToken, newRefreshToken);
+        get().setTokens(accessToken, newRefreshToken, user.role);
         set({
           user,
           isAuthenticated: true,
@@ -110,11 +110,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   // Set tokens in storage
-  setTokens: (accessToken, refreshToken) => {
+  setTokens: (accessToken, refreshToken, role) => {
     // Store refresh token in sessionStorage (more secure than localStorage)
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('refresh_token', refreshToken);
       document.cookie = `auth_token=${accessToken}; path=/; sameSite=Lax`;
+      if (role) {
+        document.cookie = `user_role=${role}; path=/; sameSite=Lax`;
+      }
     }
     set({ accessToken });
     setAccessToken(accessToken);
@@ -130,7 +133,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const { accessToken, refreshToken, user } = response.data;
 
         // Store tokens
-        get().setTokens(accessToken, refreshToken);
+        get().setTokens(accessToken, refreshToken, user.role);
 
         // Set user and mark as initialized
         set({
@@ -166,7 +169,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const { accessToken, refreshToken, user } = response.data;
 
         // Store tokens
-        get().setTokens(accessToken, refreshToken);
+        get().setTokens(accessToken, refreshToken, user.role);
 
         // Set user and mark as initialized
         set({
@@ -197,6 +200,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     authService.logout();
     if (typeof window !== 'undefined') {
       document.cookie = 'auth_token=; path=/; max-age=0; sameSite=Lax';
+      document.cookie = 'user_role=; path=/; max-age=0; sameSite=Lax';
     }
     setAccessToken(null);
     set({
@@ -224,7 +228,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (response.success && response.data) {
         const { accessToken, refreshToken: newRefreshToken, user } = response.data;
-        get().setTokens(accessToken, newRefreshToken);
+        get().setTokens(accessToken, newRefreshToken, user.role);
         set({
           user,
           isAuthenticated: true,
@@ -237,6 +241,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Refresh failed - clear auth state
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('refresh_token');
+        document.cookie = 'user_role=; path=/; max-age=0; sameSite=Lax';
       }
       set({
         user: null,
