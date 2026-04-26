@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { eventsService } from '@/services/events.service';
 import { useToastStore } from '@/store/toast.store';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import RoleGuard, { PERMISSIONS } from '@/components/RoleGuard';
 import { Event, CreateEventDto, EventType, EventStatus } from '@/types';
 import { 
   Loader2, 
@@ -140,8 +141,9 @@ export default function EventsPage() {
   );
 
   return (
-    <div className="space-y-12">
-      {/* Header */}
+    <RoleGuard requiredPermission={PERMISSIONS.VIEW_EVENTS}>
+      <div className="space-y-12">
+        {/* Header */}
       <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="max-w-2xl">
           <div className="inline-block px-3 py-1 bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-[0.4em] mb-4 rounded-sm">
@@ -416,5 +418,6 @@ export default function EventsPage() {
         }}
       />
     </div>
+  </RoleGuard>
   );
 }
