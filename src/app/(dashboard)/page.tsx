@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { dashboardApi } from '@/services/dashboard.service';
+import { useAuthStore } from '@/store/auth.store';
 import { useToastStore } from '@/store/toast.store';
-import { Company } from '@/types';
+import { Company, UserRole } from '@/types';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -20,7 +22,11 @@ import {
 } from 'lucide-react';
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { user, isInitialized } = useAuthStore();
   const { error } = useToastStore();
+  
+  // Stats state
   const [stats, setStats] = useState({
     totalStudents: 0,
     pendingCompanies: 0,
@@ -34,7 +40,22 @@ export default function DashboardPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
+  // Role-based redirection
+  useEffect(() => {
+    if (isInitialized && user) {
+      if (user.role === UserRole.COMPANY_REP) {
+        router.replace('/company-dashboard');
+      } else if (user.role === UserRole.STUDENT) {
+        // Redirect to a student-specific page if one exists, 
+        // otherwise let them see a limited dashboard
+        // router.replace('/student-dashboard'); 
+      }
+    }
+  }, [user, isInitialized, router]);
+
   const fetchDashboardData = useCallback(async (isManualRefresh = false) => {
+    // Only fetch for admin/staff
+    if (user?.role !== UserRole.ADMIN && user?.role !== UserRole.STAFF) return;
     try {
       if (isManualRefresh) {
         setRefreshing(true);
