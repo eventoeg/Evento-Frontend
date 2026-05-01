@@ -25,3 +25,19 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+
+## Artifacts
+
+### ITI EMS (`artifacts/iti-ems`)
+- **Kind**: React + Vite web app (migrated from Next.js)
+- **Preview path**: `/`
+- **Port**: 25859
+- **Stack**: React, Vite, Wouter (routing), Zustand (state), Axios (API client), Tailwind v4
+- **Purpose**: Multi-role Employment Management System for ITI (students, staff, admins, companies, security)
+- **Features**: Auth, dashboards per role, companies, tracks, events, job profiles, interviews, attendance, feedback, user management
+- **API**: Calls external backend via `VITE_API_BASE_URL` env var (defaults to `http://localhost:3001`)
+- **Fonts**: Inter (Google Fonts) + Material Symbols Outlined (Google Fonts)
+- **Entry**: `src/main.tsx` → `src/App.tsx` (wouter-based routing)
+- **Auth**: `src/components/AuthGuard.tsx` + `src/store/auth.store.ts` (Zustand)
+- **Pages**: Located in `src/app/(auth)/` and `src/app/(dashboard)/`
+- **Theme**: Custom CSS variables in `src/app/globals.css` (ITI red primary `#C1272D`)
