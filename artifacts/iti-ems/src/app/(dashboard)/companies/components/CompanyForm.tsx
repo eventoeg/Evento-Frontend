@@ -6,7 +6,7 @@ import { companySchema, CompanyFormData } from '@/validations/company.schema';
 import { Loader2, Building2, MapPin, AlignLeft, Info } from 'lucide-react';
 
 // Use material symbols for some icons to match the theme
-import '@/app/globals.css'; 
+ 
 
 interface CompanyFormProps {
   initialData?: Partial<CompanyFormData>;
