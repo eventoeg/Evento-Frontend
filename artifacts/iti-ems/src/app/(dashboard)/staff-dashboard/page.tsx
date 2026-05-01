@@ -26,7 +26,7 @@ function StaffDashboardContent() {
 
   useEffect(() => {
     if (!user) return;
-    navigate('/dashboard');
+    navigate('/');
   }, [user, navigate]);
 
   return null;

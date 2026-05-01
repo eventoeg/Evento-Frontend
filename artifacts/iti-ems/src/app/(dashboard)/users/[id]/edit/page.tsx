@@ -49,7 +49,6 @@ export default function EditUserPage() {
       if (res.success) {
         success('Identity profile successfully updated');
         navigate('/users');
-        // router.refresh() removed;
       }
     } catch (err: any) {
       error(err.response?.data?.message || 'Failed to update registry entry');

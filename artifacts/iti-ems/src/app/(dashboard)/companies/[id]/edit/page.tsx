@@ -41,7 +41,6 @@ export default function EditCompanyPage() {
       if (res.success) {
         success('Partner registry entry successfully updated');
         navigate('/companies');
-        // router.refresh() removed;
       }
     } catch (err: any) {
       error(err.response?.data?.message || 'Failed to update partner data');

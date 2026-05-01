@@ -41,7 +41,6 @@ export default function EditTrackPage() {
       if (res.success) {
         success('Academic pathway parameters successfully updated');
         navigate('/tracks');
-        // router.refresh() removed;
       }
     } catch (err: any) {
       error(err.response?.data?.message || 'Failed to update academic pathway');

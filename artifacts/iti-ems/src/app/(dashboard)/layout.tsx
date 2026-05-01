@@ -24,7 +24,6 @@ export default function DashboardLayout({
   const handleLogout = () => {
     logout();
     navigate('/login');
-    // router.refresh() removed;
   };
 
   if (!isInitialized) {

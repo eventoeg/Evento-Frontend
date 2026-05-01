@@ -177,7 +177,6 @@ function RegisterForm() {
     });
 
     navigate('/');
-    // router.refresh() removed;
   };
 
   const currentYear = new Date().getFullYear();
