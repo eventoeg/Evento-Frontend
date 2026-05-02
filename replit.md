@@ -92,3 +92,21 @@ src/
 - **Live Queue** (`/live/:jobProfileId`): Socket.IO rooms per job profile; optimistic UI with rollback table; fallback polling if WS unreachable in 5s or 3 disconnects/60s; Web Locks leader election (only leader tab issues mutations); snapshot reconciliation on reconnect. Hotkeys S/E/K/N.
 - **Role permissions**: Single source of truth in `src/components/RoleGuard.tsx` (`PERMISSIONS`, `ROLE_PERMISSIONS`); re-exported from `shared/auth/permissions.ts`.
 - **Vite proxy**: `/api` → `http://localhost:8080` (api-server) during dev.
+
+## Backend Integration Status
+
+### API Connectivity (verified)
+- `VITE_API_BASE_URL` is set as a Replit secret and picked up automatically by Vite at dev/build time.
+- Login (`POST /auth/login`) connects to the real backend and returns proper responses.
+- All service modules (auth, companies, tracks, events, interviews, attendance, feedback, student-cvs, job-profiles, queues, invitations, users) are correctly wired to the API client.
+
+### Known Backend API Gaps
+| Issue | Affected Page | Status |
+|-------|--------------|--------|
+| `/tracks` and `/companies` (GET list) require JWT authentication | Registration page — dropdowns show empty for unauthenticated users | Backend needs public read endpoints, or registration UX should defer track/company selection to post-login |
+
+### Role-based Login Flow
+After successful login the auth store sets `user.role` and cookies (`auth_token`, `user_role`). The dashboard root page (`/`) redirects:
+- `COMPANY_REP` → `/company-dashboard`
+- `STUDENT` → stays on `/` (limited view)
+- `ADMIN` / `STAFF` → stays on `/` (full admin dashboard with stats)
