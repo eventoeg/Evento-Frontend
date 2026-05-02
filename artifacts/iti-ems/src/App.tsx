@@ -32,6 +32,7 @@ const StudentsPage = lazy(() => import("@/app/(dashboard)/students/page"));
 const StudentDetailPage = lazy(() => import("@/app/(dashboard)/students/[id]/page"));
 const JobFairPage = lazy(() => import("@/app/job-fair/page"));
 const JobFairTokenPage = lazy(() => import("@/app/job-fair/[token]/page"));
+const LiveQueuePage = lazy(() => import("@/app/live/[jobProfileId]/page"));
 const DashboardLayout = lazy(() => import("@/app/(dashboard)/layout"));
 
 function PageLoading() {
@@ -94,6 +95,9 @@ function Router() {
       </Route>
       <Route path="/job-fair">
         <Suspense fallback={<PageLoading />}><JobFairPage /></Suspense>
+      </Route>
+      <Route path="/live/:jobProfileId">
+        <Suspense fallback={<PageLoading />}><LiveQueuePage /></Suspense>
       </Route>
       <Route>
         <DashboardRoutes />

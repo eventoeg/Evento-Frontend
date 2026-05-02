@@ -1,0 +1,133 @@
+# ITI EMS
+
+[Questions ](https://www.notion.so/Questions-24e839cdd5f78046b490cb2633c9f312?pvs=21)
+
+## Events types
+
+3 types of events : 
+
+- internal
+- external hosted iti
+- job fair
+
+## Roles
+
+admin
+
+staff
+
+student
+
+security
+
+## Registration
+
+- [ new student ] → private link for registration especially for iti students
+- [ previous student ] :
+    - enter a new email → new student
+    - enter his previous email → update will be pending
+- if the previous  student ( current an itian ) didn’t complete the diploma → moderator can demote him to his previous status
+
+## Job Fair
+
+1- an invitation email to companies → form for applying in the job fair event → admin accept or discard
+
+Registration through the invitation email → company fill its data ( company name , email , location , description, company representative  )→ receives an acceptance email
+
+2- company access the site →
+
+3- separation of the data a company can edit :
+
+- data that admin will review → pended
+- data can be edited immediately
+
+4- company fill its job profiles with the number of positions
+
+5- company decide what types of interviews ( HR , Tech , both ) 
+
+6- company can decides number of queues , number of queues =< number of positions , if it will be a queue for every position or not
+
+7- company choose if it demands a branding day or not
+
+8- company enter the speaker data
+
+8- admin accept or discard 
+
+9- queues on every position is created automatic based to the students attendance
+
+10- company can view all CVs a~~nd the CVs of its position applications~~
+
+11- ~~company can send an interview request to a student out of its applications list~~ 
+
+12- company creates a shortlist of CVs ~~even from the request or from the rest of CVS~~  
+
+12- ~~number of queues =< number of positions , company can decides number of queues~~  queue is random
+
+13- company fill the data of the interviewers 
+
+13- company can request a reschedule
+
+14- company start the interview → view student CV → end the interview [ next ]
+
+15- company can skip students and add others during the interview process
+
+16 - company can indicate the break time
+
+17 - feedback form on the job fair event from the company - mandatory
+
+18- feedback form on the event from the students - optional
+
+19- feedback form on the company from the students - optional
+
+### Job Fair [ student perspective ]
+
+- students can upload more than CV based in the profile
+- visibility based on tracks [ admin allow certain tracks or programs ]
+- student can view company details
+- all the students CVs is available on the site so companies can screen them and make their shortlist
+- student checks in his attendance
+- once he checks in he takes his position in the queue of his interviews
+- students who are in interview and their turn comes , will be halted in the queue and will not lose their position
+- students who are not in interview and their turn comes and didn’t attend will be moved to the end of the queue or halted in their position
+- student will give a feedback on the job fair event
+- company / student will fill a form if the student was accepted
+
+### Job Fair [ admin perspective ]
+
+- create job fair event as a draft → admin send the event invitations to companies → companies show their interesting in the event → admin confirms the job profiles   → admin publish the event → admin announce the shortlist to all the students are involved
+- approve or reject companies
+- approve or reject job profiles of the companies
+- admin specifies the labs / halls for each company
+- schedule the day of the job fair event [ agenda ]
+- separate agenda for the branding day
+- admin can reschedule the appointment of the companies
+- can view the queues of every company - number of interviews for every company with
+
+### External Events [ student perspective ] → Pending
+
+- students can give feedback on the event
+
+## Events
+
+### [ admin ]
+
+- approve students registrations
+- create staff accounts
+
+### Internal Events [ admin perspective ]
+
+- create the event → make the agenda → fill the speaker data → publish it
+- create feedback form [ dynamic ]
+- can share the feedback form with the speaker
+
+### Tech Events [ student perspective ]
+
+- student can brows the events
+- student will join the event ?
+- student check in the event
+- Q&A during the event - link of a tool
+- after the event end , student will be able to give a feedback
+
+### External Events [ admin perspective ]
+
+- the coordinator of the event fill a form with his data ( add the faculty and the uni on the form - dropdown preferred)
